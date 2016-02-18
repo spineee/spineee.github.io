@@ -58,26 +58,4 @@
     
   </entry>
   
-  <entry>
-    <title>建个bog</title>
-    <link href="http://yoursite.com/2016/02/10/first-post/"/>
-    <id>http://yoursite.com/2016/02/10/first-post/</id>
-    <published>2016-02-10T15:50:53.790Z</published>
-    <updated>2016-02-10T15:50:53.790Z</updated>
-    
-    <content type="html">&lt;p&gt;好麻烦！！&lt;/p&gt;
-</content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;好麻烦！！&lt;/p&gt;
-
-    
-    </summary>
-    
-    
-      <category term="杂物堆" scheme="http://yoursite.com/tags/%E6%9D%82%E7%89%A9%E5%A0%86/"/>
-    
-  </entry>
-  
 </feed>
