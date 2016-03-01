@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://spinee.gitcafe.io/"/>
-  <updated>2016-03-01T07:08:38.954Z</updated>
+  <updated>2016-03-01T08:03:02.787Z</updated>
   <id>http://spinee.gitcafe.io/</id>
   
   <author>
@@ -17,10 +17,10 @@
   
   <entry>
     <title>寒假练习</title>
-    <link href="http://spinee.gitcafe.io/2016/03/01/practice1/"/>
-    <id>http://spinee.gitcafe.io/2016/03/01/practice1/</id>
-    <published>2016-03-01T07:08:38.954Z</published>
-    <updated>2016-03-01T07:08:38.954Z</updated>
+    <link href="http://spinee.gitcafe.io/2016/02/26/practice1/"/>
+    <id>http://spinee.gitcafe.io/2016/02/26/practice1/</id>
+    <published>2016-02-26T04:38:31.000Z</published>
+    <updated>2016-03-01T08:03:02.787Z</updated>
     
     <content type="html">&lt;p&gt;wp&lt;br&gt;&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;h1 id=&quot;Week1&quot;&gt;&lt;a href=&quot;#Week1&quot; class=&quot;headerlink&quot; title=&quot;Week1&quot;&gt;&lt;/a&gt;Week1&lt;/h1&gt;&lt;h2 id=&quot;MISC_u4ECE0_u5F00_u59CB_u4E4BSteg&quot;&gt;&lt;a href=&quot;#MISC_u4ECE0_u5F00_u59CB_u4E4BSteg&quot; class=&quot;headerlink&quot; title=&quot;MISC从0开始之Steg&quot;&gt;&lt;/a&gt;MISC从0开始之Steg&lt;/h2&gt;&lt;p&gt;一开始并不会做，然而有了隐写工具链接后下载之，自带Unhide，于是拿到flag&lt;/p&gt;
