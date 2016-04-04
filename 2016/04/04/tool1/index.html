@@ -1,0 +1,310 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Play with triton | Spine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="spine">
+    
+    <meta name="description" content="这几天放假没啥事干，看到一个挺不错的东西">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/menmian.png">
+    <link rel="apple-touch-icon-precomposed" href="/img/menmian.png">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/menmian.png" alt="Spine" title="Spine"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Spine">Spine</a></h1>
+				<h2 class="blog-motto">www</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:spinee.gitcafe.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/04/04/tool1/" title="Play with triton" itemprop="url">Play with triton</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://spinee.gitcafe.io" title="spine">spine</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-04-04T12:26:00.000Z" itemprop="datePublished">2016-04-04</time>
+    更新日期:<time datetime="2016-04-04T12:49:51.445Z" itemprop="dateModified">2016-04-04</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-_u4ECE_u4E00_u4E2A_u7B80_u5355_u7684trace_u5F00_u59CB"><span class="toc-number">1.</span> <span class="toc-text">0.从一个简单的trace开始</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Play_with_Taint_Engine"><span class="toc-number">2.</span> <span class="toc-text">1.Play with Taint Engine</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Play_with_Solve_Engine"><span class="toc-number">3.</span> <span class="toc-text">2.Play with Solve Engine</span></a></li></ol>
+		</div>
+		
+		<p>这几天放假没啥事干，看到一个挺不错的东西<br><a id="more"></a><br>先上地址：<a href="http://triton.quarkslab.com/" target="_blank" rel="external">http://triton.quarkslab.com/</a><br>再上个SMT的wiki：<a href="https://en.wikipedia.org/wiki/Satisfiability_modulo_theories" target="_blank" rel="external">https://en.wikipedia.org/wiki/Satisfiability_modulo_theories</a><br>再说说关于这个工具，可能涉及到的原理比较复杂，但个人认为是个不错的思路，有兴趣的可以看下它的实现基础，这个框架的细节都在上面的地址里了，就我看来，这个东西的价值还在它的思路，当然，还有python接口。由于我不是很熟悉SMT，所以基础部分还是算了，本文只做介绍用~</p>
+<h1 id="0-_u4ECE_u4E00_u4E2A_u7B80_u5355_u7684trace_u5F00_u59CB"><a href="#0-_u4ECE_u4E00_u4E2A_u7B80_u5355_u7684trace_u5F00_u59CB" class="headerlink" title="0.从一个简单的trace开始"></a>0.从一个简单的trace开始</h1><p>先看我们的目标程序tri<br>c源码：<br><img src="/img/post/re1_1.png" alt="re1.1"><br>汇编：<br><img src="/img/post/re1_2.png" alt="re1.2"><br>我们的目标是对跟踪tri，并输出它的每一条执行过的语句，这个例子来自自带的sample<br>先上效果：<br><img src="/img/post/re1_3.png" alt="re1.3"><br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pintool <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> triton  <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mycb</span><span class="params">(inst)</span>:</span></span><br><span class="line">    <span class="keyword">print</span> inst</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="comment"># Set arch</span></span><br><span class="line">    setArchitecture(ARCH.X86_64)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Start analysis from the main </span></span><br><span class="line">    startAnalysisFromSymbol(<span class="string">'main'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Add callback</span></span><br><span class="line">    addCallback(mycb, CALLBACK.BEFORE)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Run Program</span></span><br><span class="line">    runProgram()</span><br></pre></td></tr></table></figure></p>
+<p>第一条setArchitecture设置架构，现在triton只支持X86和X86_64架构，不过不知道为啥我64位机上triton不能拿来玩32位，接下来是开始符号分析的语句，如果这什么都不设置，就什么也不会输出，当然，分析是可以从入口开始startAnalysisFromEntry或者某个固定的地址startAnalysisFromAddress开始都可以。<br>再接下来是增添回调函数，triton支持8种回调方式，例子里的是CALLBACK.BEFORE，指在每条指令执行前回调一次，然后看我们的回调函数，参数是指令的结构，具体的可以看文档，然后我们很简单的就把指令输出，这就是回掉函数的功能。接下来运行程序，就有上面的效果了，很简单易懂吧。接下来来看其他有趣的功能</p>
+<h1 id="1-Play_with_Taint_Engine"><a href="#1-Play_with_Taint_Engine" class="headerlink" title="1.Play with Taint Engine"></a>1.Play with Taint Engine</h1><p>这个功能相当有趣，看名字就知道，染色功能，具体来说就是在代码执行到某处时给寄存器或某个内存块染色，接下来你可以查看所有操作被染色的指令，内存等，这是个非常实用的功能啊，特别是在某些逆向题可以快速找到对输入的处理部分，来看一个栗子，还是上面的那个程序，不过这次我们要监视它的输入然后输出与它相关的操作<br>结果：<br><img src="/img/post/re1_4.png" alt="re1.4"><br>是不是很方便，来看看脚本<br>脚本：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> triton <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> pintool <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">BLUE = <span class="string">'\033[94m'</span></span><br><span class="line">GREY = <span class="string">'\033[90m'</span></span><br><span class="line">ENDC  = <span class="string">'\033[0m'</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">out</span><span class="params">(inst)</span>:</span></span><br><span class="line">	flag=<span class="number">0</span></span><br><span class="line">	<span class="keyword">for</span> se <span class="keyword">in</span> inst.getSymbolicExpressions():	</span><br><span class="line">		<span class="keyword">if</span> se.isTainted()==<span class="keyword">True</span>:</span><br><span class="line">			flag=<span class="number">1</span></span><br><span class="line">	<span class="keyword">if</span> flag:</span><br><span class="line">		<span class="keyword">print</span> <span class="string">"%012x:'\\x%-19s;%s%s%s"</span>%(inst.getAddress(),inst.getOpcodes().encode(<span class="string">'hex'</span>)+<span class="string">"'"</span>,BLUE,inst.getDisassembly(),ENDC)</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">taint</span><span class="params">(inst)</span>:</span></span><br><span class="line">	<span class="keyword">if</span> inst.getAddress()==<span class="number">0</span>x:</span><br><span class="line">		<span class="comment">#value=getCurrentRegisterValue(REG.RAX)</span></span><br><span class="line">		<span class="comment">#taintMemory(value)</span></span><br><span class="line">		<span class="comment">#taintRegister(REG.RAX)</span></span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__==<span class="string">'__main__'</span>:</span><br><span class="line">	<span class="comment">#Select The Architecture</span></span><br><span class="line">	setArchitecture(ARCH.X86_64)</span><br><span class="line">	<span class="comment">#Begin to Analysis when main is executed</span></span><br><span class="line">	startAnalysisFromSymbol(<span class="string">'main'</span>)</span><br><span class="line">	<span class="comment">#Set callback</span></span><br><span class="line">	addCallback(taint,CALLBACK.BEFORE_SYMPROC)</span><br><span class="line">	addCallback(out,CALLBACK.BEFORE)</span><br><span class="line">	<span class="comment">#run program</span></span><br><span class="line">	runProgram()</span><br></pre></td></tr></table></figure></p>
+<p>这个就比上一个复杂一些，不过还是很好理解的，设置了两个callback，一个是BEFORE_SYMPROC，根据官方的文档说染色应该设置这个类型（不过貌似可以用其他的），SymbolicExpressions是涉及到SMT的部分，还是那句话感兴趣的可以看，还是值得一看的，如果不想看，就把它当成指令的一个属性来看就行。<br>涉及到染色的函数这里有3个，有两个是taintRegister，taintMemory，用来染色的，当然triton也提供了untaint的功能，具体看文档。还有一个是isTainted，用来判断条件指令中有没有被染色的部分，如果有，返回True，整个程序就这样了，其他的像instruction类可以看文档，接下来看更复杂一点的东西</p>
+<h1 id="2-Play_with_Solve_Engine"><a href="#2-Play_with_Solve_Engine" class="headerlink" title="2.Play with Solve Engine"></a>2.Play with Solve Engine</h1><p>简单的应用就是explosion，关于这个还是看一个题吧<br><img src="/img/post/re1_5.png" alt="re1.5"><br>这是idaF5后的结果，看到两个点，第一，11个条件，第二每个条件设计到的数据长度都是byte，根据一定的求解顺序可以一个byte一个byte爆破。根据分析只要先算出+1的位置和+0的位置的byte之后就可以把后面几个字节都爆出来<del>（虽然这个例子可能手动算会比较方便）</del>关于这个solve engine</p>
+<p>具体实现：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> triton <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> pintool <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> ast <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">result=[]</span><br><span class="line">sym=[<span class="string">'SymVar_0'</span>,<span class="string">'SymVar_1'</span>,<span class="string">'SymVar_2'</span>,<span class="string">'SymVar_3'</span>,<span class="string">'SymVar_4'</span>,<span class="string">'SymVar_5'</span>,<span class="string">'SymVar_6'</span>,<span class="string">'SymVar_7'</span>,<span class="string">'SymVar_8'</span>,<span class="string">'SymVar_9'</span>,<span class="string">'SymVar_10'</span>]</span><br><span class="line">sym1=[<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>]</span><br><span class="line">ads=[<span class="number">0x400780</span>,<span class="number">0x4007a2</span>,<span class="number">0x4007dc</span>,<span class="number">0x400821</span>,<span class="number">0x400851</span>,<span class="number">0x400880</span>,<span class="number">0x4008b4</span>,<span class="number">0x4008e3</span>,<span class="number">0x400900</span>,<span class="number">0x400939</span>,<span class="number">0x400973</span>]</span><br><span class="line">addsequence=[<span class="number">0</span>,<span class="number">3</span>,<span class="number">6</span>,<span class="number">5</span>,<span class="number">7</span>,<span class="number">0xa</span>,<span class="number">1</span>,<span class="number">9</span>,<span class="number">4</span>,<span class="number">2</span>,<span class="number">8</span>]</span><br><span class="line">raxEqual=[<span class="number">0x50</span>,<span class="number">0xc8</span>,<span class="string">'rdx'</span>,<span class="string">'rbx'</span>,<span class="string">'rdx'</span>,<span class="string">'rdx'</span>,<span class="string">'rdx'</span>,<span class="string">'rdx'</span>,<span class="number">0x69</span>,<span class="number">0x0D</span>,<span class="number">0x0D</span>]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">solver</span><span class="params">(inst)</span>:</span></span><br><span class="line">	<span class="keyword">if</span> inst.getAddress()==<span class="number">0x40077a</span>:</span><br><span class="line">		r=getCurrentRegisterValue(REG.RAX)</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,<span class="number">0xB</span>):</span><br><span class="line">			mem = Memory(r+i,<span class="number">1</span>)</span><br><span class="line">			convertMemoryToSymbolicVariable(mem)</span><br><span class="line">		<span class="comment">#convertRegisterToSymbolicVariable(REG.RAX)</span></span><br><span class="line">		symbol=getSymbolicVariableFromName(<span class="string">'SymVar_1'</span>)</span><br><span class="line">		result.append(assert_(equal(variable(symbol),bv(<span class="number">0x61</span>,<span class="number">8</span>))))</span><br><span class="line">	<span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,<span class="number">0xB</span>):</span><br><span class="line">		<span class="keyword">if</span> inst.getAddress()==ads[i]:</span><br><span class="line">			<span class="keyword">print</span> <span class="string">'[+]wait..'</span></span><br><span class="line">			raxId = getSymbolicRegisterId(REG.RAX)</span><br><span class="line">			raxExpr = getFullAstFromId(raxId)</span><br><span class="line">			<span class="keyword">if</span> raxEqual[i]==<span class="string">'rdx'</span>:</span><br><span class="line">				rdxId = getSymbolicRegisterId(REG.RDX)</span><br><span class="line">                        	rdxExpr = getFullAstFromId(rdxId)</span><br><span class="line">				raxE=rdxExpr</span><br><span class="line">			<span class="keyword">elif</span> raxEqual[i]==<span class="string">'rbx'</span>:</span><br><span class="line">				rbxId = getSymbolicRegisterId(REG.RBX)</span><br><span class="line">	                        rbxExpr = getFullAstFromId(rbxId)</span><br><span class="line">				raxE=rbxExpr</span><br><span class="line">			<span class="keyword">else</span>:</span><br><span class="line">				raxE=bv(raxEqual[i],<span class="number">64</span>)</span><br><span class="line">			sym1[addsequence[i]] = getSymbolicVariableFromName(sym[addsequence[i]])	</span><br><span class="line">			EXPRC = [assert_(bvugt(variable(sym1[addsequence[i]]),bv(<span class="number">0x20</span>,<span class="number">8</span>))),</span><br><span class="line">                        	assert_(bvult(variable(sym1[addsequence[i]]),bv(<span class="number">0x7f</span>,<span class="number">8</span>)))]</span><br><span class="line">			expr = compound(EXPRC+[assert_(equal(raxExpr,raxE))]+result)</span><br><span class="line">			models=getModels(expr,<span class="number">1</span>)</span><br><span class="line">			<span class="keyword">for</span> model <span class="keyword">in</span> models:</span><br><span class="line">            			<span class="keyword">print</span> &#123;k: <span class="string">"0x%x, '%c'"</span> % (v.getValue(), v.getValue()) <span class="keyword">for</span> k, v <span class="keyword">in</span> model.items()&#125; </span><br><span class="line">			<span class="keyword">for</span> model <span class="keyword">in</span> models:</span><br><span class="line">				<span class="keyword">for</span> k, v <span class="keyword">in</span> model.items():</span><br><span class="line">					<span class="keyword">if</span> k==addsequence[i]:</span><br><span class="line">						temp=v.getValue()</span><br><span class="line">			result.append(assert_(equal(variable(sym1[addsequence[i]]),bv(temp,<span class="number">8</span>))))</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__==<span class="string">'__main__'</span>:</span><br><span class="line">	setArchitecture(ARCH.X86_64)</span><br><span class="line">	<span class="comment">#startAnalysisFromSymbol('main')</span></span><br><span class="line">	startAnalysisFromAddress(<span class="number">0x40072D</span>)</span><br><span class="line">	addCallback(solver,CALLBACK.AFTER)</span><br><span class="line">	runProgram()</span><br></pre></td></tr></table></figure></p>
+<p>额，可能实现有点复杂，不过就几个重点讲下吧，整个Solve Engine在我看来有2部分<br>第一部分：限定条件，分两块，第一块指定变量，具体的是在convertMemoryToSymbolicVariable设定转化为符号的变量，在getSymbolicVariableFromName处取出符号，第二块是限定条件，就是代码里的expr = compound(list)，比较条件可能表达有点奇葩，不过仔细看看还是能看的懂的<br>第二部分：解决方案，这部分就是下面的model，model中会存放解决方案（注意这个解决方案是满足条件的变量的集合，所以有可能在我们想爆破下一个值的时候，上一个值就变了，我这里的解决方法是把每次爆破出来的结果放进下次爆破的条件里），通过getModels函数获取，效果：<br><img src="/img/post/re1_6.png" alt="re1.6"><br><img src="/img/post/re1_7.png" alt="re1.7"><br>总结：这篇文章可能讲的不是很细致，我也是刚接触没多久，还有个Snapshot Engine没玩过，将真的，文档很重要，下载到的文件里的sample和pdf也需要好好的研究下，也有把这个用到fuzzing test方面的，这我就不是很懂了，总之是个很不错的项目！</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/reverse/">reverse</a>
+  </div>
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://spinee.gitcafe.io/2016/04/04/tool1/" data-title="Play with triton | Spine" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2016/03/31/practice2/"  title="crypto wp1">
+ <strong>NEXT:</strong><br/> 
+ <span>crypto wp1
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-_u4ECE_u4E00_u4E2A_u7B80_u5355_u7684trace_u5F00_u59CB"><span class="toc-number">1.</span> <span class="toc-text">0.从一个简单的trace开始</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Play_with_Taint_Engine"><span class="toc-number">2.</span> <span class="toc-text">1.Play with Taint Engine</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Play_with_Solve_Engine"><span class="toc-number">3.</span> <span class="toc-text">2.Play with Solve Engine</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/crypto/" title="crypto">crypto<sup>1</sup></a></li>
+		
+			<li><a href="/tags/ctf/" title="ctf">ctf<sup>2</sup></a></li>
+		
+			<li><a href="/tags/reverse/" title="reverse">reverse<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+   	  <li><a href="http://hduisa.cn/" target="_blank" title="HDUISA">HDUISA</a></li>
+	  <li><a href="http://wiki.hduisa.cn/" target="_blank" title="HDUISA_WIKI">HDUISA_WIKI</a></li>
+	  <li><a href="http://drops.hduisa.cn/" target="_blank" title="HDUISA_DROP">HDUISA_DROP</a></li>
+    </ul>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<div class="social-font clearfix">
+		
+		
+		
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2016 
+		
+		<a href="http://spinee.gitcafe.io" target="_blank" title="spine">spine</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+  </body>
+</html>
