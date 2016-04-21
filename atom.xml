@@ -4,9 +4,9 @@
   <subtitle>www</subtitle>
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://spinee.gitcafe.io/"/>
+  <link href="http://spinee.github.io/"/>
   <updated>2016-03-31T09:20:20.592Z</updated>
-  <id>http://spinee.gitcafe.io/</id>
+  <id>http://spinee.github.io/</id>
   
   <author>
     <name>spine</name>
@@ -17,8 +17,8 @@
   
   <entry>
     <title>crypto wp1</title>
-    <link href="http://spinee.gitcafe.io/2016/03/31/practice2/"/>
-    <id>http://spinee.gitcafe.io/2016/03/31/practice2/</id>
+    <link href="http://spinee.github.io/2016/03/31/practice2/"/>
+    <id>http://spinee.github.io/2016/03/31/practice2/</id>
     <published>2016-03-31T08:39:31.000Z</published>
     <updated>2016-03-31T09:20:20.592Z</updated>
     
@@ -38,16 +38,16 @@
     </summary>
     
     
-      <category term="crypto" scheme="http://spinee.gitcafe.io/tags/crypto/"/>
+      <category term="crypto" scheme="http://spinee.github.io/tags/crypto/"/>
     
-      <category term="ctf" scheme="http://spinee.gitcafe.io/tags/ctf/"/>
+      <category term="ctf" scheme="http://spinee.github.io/tags/ctf/"/>
     
   </entry>
   
   <entry>
     <title>ctf练习</title>
-    <link href="http://spinee.gitcafe.io/2016/02/26/practice1/"/>
-    <id>http://spinee.gitcafe.io/2016/02/26/practice1/</id>
+    <link href="http://spinee.github.io/2016/02/26/practice1/"/>
+    <id>http://spinee.github.io/2016/02/26/practice1/</id>
     <published>2016-02-26T04:38:31.000Z</published>
     <updated>2016-03-03T14:13:26.231Z</updated>
     
@@ -99,7 +99,7 @@
     </summary>
     
     
-      <category term="ctf" scheme="http://spinee.gitcafe.io/tags/ctf/"/>
+      <category term="ctf" scheme="http://spinee.github.io/tags/ctf/"/>
     
   </entry>
   
