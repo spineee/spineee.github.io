@@ -78,7 +78,7 @@
     <script>
         const CONFIG = {
             baseIp: "10.33",
-            port: 80,
+            port: 22,
             timeout: 1500,
             concurrency: 50 
         };
@@ -95,7 +95,7 @@
         // 1. 初始化网格
         function initGrid() {
             for (let i = 0; i <= 255; i++) {
-                const ip = `${CONFIG.baseIp}.${i}.1`;
+                const ip = `${CONFIG.baseIp}.${i}.101`;
                 const div = document.createElement('div');
                 div.className = 'node';
                 div.id = `node-${i}`;
