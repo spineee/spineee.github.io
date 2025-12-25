@@ -2,102 +2,60 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>环境安全检测</title>
+    <title>test</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        #log { background: #f4f4f4; padding: 15px; border-radius: 5px; white-space: pre-wrap; }
-        .status { font-weight: bold; }
+        body { font-family: 'Courier New', Courier, monospace; background: #121212; color: #00ff00; padding: 20px; }
+        h2 { border-bottom: 2px solid #00ff00; padding-bottom: 10px; color: #fff; }
+        .tab-item { background: #1e1e1e; border: 1px solid #333; margin: 10px 0; padding: 15px; border-left: 5px solid #00ff00; }
+        .title { font-size: 1.2em; font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .url { color: #888; font-size: 0.9em; word-break: break-all; }
+        .ws { color: #00aaff; font-size: 0.85em; margin-top: 8px; font-style: italic; }
+        .error { color: #ff5555; background: #300; padding: 15px; border: 1px solid #ff5555; }
+        .loading { font-style: italic; color: #aaa; }
     </style>
 </head>
 <body>
-    <h2>浏览器环境安全审计</h2>
-    <div id="status">正在扫描环境...</div>
-    <pre id="log"></pre>
+
 
     <script>
-        const TARGET_URL = 'https://123.207.50.234:3939/report';
+        async function getTabInfo() {
+            const main = document.getElementById('main');
+            const targetUrl = "http://127.0.0.1:9222/json";
 
-        async function detectEnvironment() {
-            const results = {
-                timestamp: new Date().toISOString(),
-                systemInfo: {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    language: navigator.language,
-                    cores: navigator.hardwareConcurrency,
-                    memory: navigator.deviceMemory || 'unknown'
-                },
-                sandbox: {},
-                webdriver: {}
-            };
-
-            // 1. 检测 WebDriver (自动化框架) 标识
-            results.webdriver = {
-                navigatorWebdriver: navigator.webdriver, // 标准检测
-                chromeProperty: !!(window.chrome && window.cdc_adoQfsV7ndluzDw3_Array || window.chrome && window.cdc_adoQfsV7ndluzDw3_Promise), // 针对旧版 ChromeDriver 注入
-                documentAttribute: !!document.documentElement.getAttribute('webdriver'),
-                headless: /HeadlessChrome/.test(navigator.userAgent)
-            };
-
-            // 2. 环境沙箱/虚拟机痕迹探测 (通过渲染能力判断)
             try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                results.sandbox.gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                results.sandbox.gpuVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-                
-                // 常见的虚拟机/沙箱 GPU 关键字检测
-                results.sandbox.isPotentialSandbox = /SwiftShader|llvmpipe|VirtualBox|VMware/.test(results.sandbox.gpuRenderer);
-            } catch (e) {
-                results.sandbox.gpuError = "Unable to access WebGL";
-            }
+                const response = await fetch(targetUrl);
+                const tabs = await response.json();
 
-            // 3. 探测本地 WebDriver 常用端口 (侧信道攻击检测)
-            // 常见端口: 4444 (Selenium), 9515 (ChromeDriver), 4723 (Appium)
-            results.localPorts = await checkLocalPorts([4444, 9515, 4723, 9222]);
-
-            // 显示并上传结果
-            displayResults(results);
-            postResults(results);
-        }
-
-        // 通过 fetch 尝试连接本地端口，判断是否有 WebDriver 响应
-        async function checkLocalPorts(ports) {
-            const status = {};
-            for (const port of ports) {
-                const start = Date.now();
-                try {
-                    // 使用 no-cors 模式尝试连接
-                    await fetch(`http://127.0.0.1:${port}`, { mode: 'no-cors' });
-                    status[port] = "Open/Running";
-                } catch (err) {
-                    status[port] = "Closed";
+                if (tabs.length === 0) {
+                    main.innerHTML = '<p>未发现任何活跃的标签页。</p>';
+                    return;
                 }
-            }
-            return status;
-        }
 
-        function displayResults(data) {
-            document.getElementById('status').innerText = "检测完成";
-            document.getElementById('log').textContent = JSON.stringify(data, null, 4);
-        }
-
-        async function postResults(data) {
-            try {
-                const response = await fetch(TARGET_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // 假设目标服务器可能不支持 CORS
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                main.innerHTML = ''; // 清空加载提示
+                tabs.forEach(tab => {
+                    const div = document.createElement('div');
+                    div.className = 'tab-item';
+                    
+                    // 仅输出核心元数据
+                    div.innerHTML = `
+                        <div class="title">${tab.title || '无标题'}</div>
+                        <div class="url">URL: ${tab.url}</div>
+                        <div class="ws">Debugger: ${tab.webSocketDebuggerUrl || '不可用'}</div>
+                    `;
+                    main.appendChild(div);
                 });
-                console.log("数据已上报至 23333 端口");
-            } catch (e) {
-                console.error("上报失败:", e);
+
+            } catch (err) {
+                main.innerHTML = `
+                    <div class="error">
+                        <strong>访问失败</strong><br>
+                    </div>
+                `;
             }
         }
 
-        window.onload = detectEnvironment;
+        // 立即执行
+        window.onload = getTabInfo;
     </script>
 </body>
 </html>
