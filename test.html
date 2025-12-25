@@ -1,40 +1,73 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Scanner</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
-        .tab-card { border: 1px solid #0f0; padding: 10px; margin: 10px 0; }
-        input { background: #111; color: #0f0; border: 1px solid #0f0; width: 400px; padding: 5px; }
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        #results { margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #fff; height: 300px; overflow-y: auto; }
+        .open { color: green; font-weight: bold; }
+        .closed { color: red; }
+        .timeout { color: gray; }
     </style>
 </head>
 <body>
-    <hr>
-    <div id="output"></div>
+    <p>Target: <strong>111</strong></p>
+    
+    <div id="results">
+        <em>Scan results will appear here...</em>
+    </div>
 
     <script>
-        function checkTab() {
-            const wsUrl = "wss://127.0.0.1:9222";
-            // 关键点：即使在 HTTPS 页面，某些浏览器仍允许向 127.0.0.1 发起不安全 ws 连接
-            const ws = new WebSocket(wsUrl);
-            const out = document.getElementById('output');
+        const target = "sentry.amazon.com";
+        const commonPorts = [21, 22, 23, 25, 53, 80, 110, 443, 8080, 8443];
+        const timeoutMs = 2000;
 
-            ws.onopen = () => {
-                out.innerHTML += `<div class="tab-card">成功连接！<br>该标签页存活。</div>`;
-                ws.send(JSON.stringify({id: 1, method: "Browser.getVersion"}));
-            };
+        async function checkPort(port) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
+            const start = performance.now();
 
-            ws.onmessage = (e) => {
-                out.innerHTML += `<div>响应: ${e.data}</div>`;
-                ws.close();
-            };
-
-            ws.onerror = () => {
-                out.innerHTML += `<div style="color:red">连接失败。可能原因：混合内容拦截或端口未开放。</div>`;
-            };
+            try {
+                // We use 'no-cors' to avoid preflight issues, 
+                // but we still can't see the content.
+                await fetch(`https://${target}:${port}`, { mode: 'no-cors', signal: controller.signal });
+                return { port, status: "Open/CORS-Blocked", time: performance.now() - start };
+            } catch (err) {
+                const duration = performance.now() - start;
+                if (err.name === 'AbortError') {
+                    return { port, status: "Timeout (Filtered)", time: duration };
+                }
+                // Usually "Failed to fetch" means connection refused (closed)
+                return { port, status: "Closed", time: duration };
+            } finally {
+                clearTimeout(id);
+            }
         }
-        checkTab()
+
+        async function startScan() {
+            const display = document.getElementById('results');
+            display.innerHTML = "<strong>Scanning...</strong><br>";
+
+            for (const port of commonPorts) {
+                const result = await checkPort(port);
+                const line = document.createElement('div');
+                
+                if (result.status.includes("Open")) {
+                    line.className = 'open';
+                } else if (result.status.includes("Timeout")) {
+                    line.className = 'timeout';
+                } else {
+                    line.className = 'closed';
+                }
+
+                line.innerHTML = `Port ${result.port}: ${result.status} (${Math.round(result.time)}ms)`;
+                display.appendChild(line);
+            }
+            display.innerHTML += "<br><strong>Scan Complete.</strong>";
+        }
+        startScan()
     </script>
 </body>
 </html>
