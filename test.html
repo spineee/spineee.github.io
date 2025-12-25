@@ -2,79 +2,152 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Subnet Scanner (with Latency)</title>
+    <title>Subnet Visual Scanner</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; color: #d4d4d4; padding: 20px; }
-        #console { background: #000; border: 1px solid #444; padding: 15px; height: 500px; overflow-y: scroll; font-family: monospace; font-size: 12px; }
-        .found { color: #4ec9b0; font-weight: bold; }
-        .timeout { color: #888; }
-        .summary { margin-bottom: 10px; font-size: 1.1em; color: #ce9178; }
-        .ms { color: #b5cea8; font-style: italic; margin-left: 10px; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #121212; 
+            color: #e0e0e0; 
+            margin: 0; 
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        h2 { margin: 0 0 10px 0; font-size: 1.2em; color: #569cd6; }
+        
+        /* 统计栏 */
+        .summary { 
+            display: flex; 
+            gap: 20px; 
+            margin-bottom: 15px; 
+            padding: 10px; 
+            background: #1e1e1e; 
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .stat-item { color: #ce9178; }
+        .stat-item b { color: #fff; }
+
+        /* 网格容器：自动填满剩余空间 */
+        #grid-container {
+            display: grid;
+            /* 16x16 的网格，正好 256 个 IP */
+            grid-template-columns: repeat(16, 1fr);
+            grid-gap: 4px;
+            flex-grow: 1;
+            overflow: hidden; /* 禁止外部滚动 */
+        }
+
+        /* 单个 IP 块 */
+        .node {
+            background: #2d2d2d;
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 9px;
+            color: #888;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        /* 不同状态的颜色 */
+        .node.scanning { border-color: #569cd6; background: #252526; }
+        .node.found { background: #1e3a34; color: #4ec9b0; border-color: #4ec9b0; font-weight: bold; }
+        .node.timeout { background: #2a2a2a; color: #555; }
+        
+        .ms-label { font-size: 8px; margin-top: 2px; opacity: 0.8; }
     </style>
 </head>
 <body>
+
     <h2>Subnet Scanner: 10.33.*.1</h2>
-    <div class="summary" id="status">Initializing Scan...</div>
-    <div id="console"></div>
+    
+    <div class="summary">
+        <div class="stat-item">Progress: <b id="scanned-count">0</b> / 256</div>
+        <div class="stat-item">Found: <b id="found-count" style="color:#4ec9b0">0</b></div>
+        <div id="status-text" style="margin-left: auto;">Initializing...</div>
+    </div>
+
+    <div id="grid-container">
+        </div>
 
     <script>
         const CONFIG = {
             baseIp: "10.33",
-            port: 22,
-            timeout: 500,
+            port: 443,
+            timeout: 1500,
             concurrency: 50 
         };
 
-        const consoleBox = document.getElementById('console');
-        const statusBox = document.getElementById('status');
+        const grid = document.getElementById('grid-container');
+        const scannedEl = document.getElementById('scanned-count');
+        const foundEl = document.getElementById('found-count');
+        const statusText = document.getElementById('status-text');
+
         let foundCount = 0;
         let scannedCount = 0;
+        const nodes = {}; // 存储所有 DOM 节点的引用
 
-        function log(message, className = "", ms = null) {
-            const entry = document.createElement('div');
-            entry.className = className;
-            const timeStr = `[${new Date().toLocaleTimeString()}] `;
-            const msStr = ms !== null ? ` <span class="ms">(${ms}ms)</span>` : "";
-            
-            entry.innerHTML = `${timeStr}${message}${msStr}`;
-            consoleBox.appendChild(entry);
-            consoleBox.scrollTop = consoleBox.scrollHeight;
+        // 1. 初始化网格
+        function initGrid() {
+            for (let i = 0; i <= 255; i++) {
+                const ip = `${CONFIG.baseIp}.${i}.1`;
+                const div = document.createElement('div');
+                div.className = 'node';
+                div.id = `node-${i}`;
+                div.innerHTML = `<span>.${i}.1</span><span class="ms-label"></span>`;
+                grid.appendChild(div);
+                nodes[ip] = div;
+            }
+        }
+
+        // 2. 更新单个节点状态
+        function updateNode(ip, status, ms = null) {
+            const node = nodes[ip];
+            if (!node) return;
+
+            node.className = `node ${status}`;
+            if (ms !== null) {
+                node.querySelector('.ms-label').textContent = `${ms}ms`;
+            }
         }
 
         async function checkHost(ip) {
+            updateNode(ip, 'scanning');
+            
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), CONFIG.timeout);
-            
-            const startTime = performance.now(); // 开始计时
+            const startTime = performance.now();
             
             try {
                 await fetch(`https://${ip}:${CONFIG.port}`, { mode: 'no-cors', signal: controller.signal });
-                
                 const duration = Math.round(performance.now() - startTime);
                 foundCount++;
-                log(`[+] FOUND: ${ip}:${CONFIG.port}`, "found", duration);
+                updateNode(ip, 'found', duration);
             } catch (err) {
                 const duration = Math.round(performance.now() - startTime);
-                
                 if (err.name === 'AbortError') {
-                    log(`[-] TIMEOUT: ${ip}:${CONFIG.port}`, "timeout", duration);
+                    updateNode(ip, 'timeout');
                 } else {
+                    // 非超时异常（如同源策略拦截或端口拒绝）通常意味着主机存活
                     foundCount++;
-                    log(`[+] FOUND (Refused): ${ip}:${CONFIG.port}`, "found", duration);
+                    updateNode(ip, 'found', duration);
                 }
             } finally {
                 clearTimeout(id);
                 scannedCount++;
-                updateStatus();
+                scannedEl.textContent = scannedCount;
+                foundEl.textContent = foundCount;
             }
         }
 
-        function updateStatus() {
-            statusBox.textContent = `Progress: ${scannedCount} / 256 | Hosts Found: ${foundCount}`;
-        }
-
-        async function startBClassScan() {
-            log(`Starting scan on ${CONFIG.baseIp}.*.1...`);
+        async function startScan() {
+            initGrid();
+            statusText.textContent = "Scanning...";
             
             let queue = [];
             for (let i = 0; i <= 255; i++) {
@@ -89,10 +162,11 @@
             });
 
             await Promise.all(workers);
-            log("Scan completed.");
+            statusText.textContent = "Scan Completed";
+            statusText.style.color = "#4ec9b0";
         }
 
-        window.onload = startBClassScan;
+        window.onload = startScan;
     </script>
 </body>
 </html>
