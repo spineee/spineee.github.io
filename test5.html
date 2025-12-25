@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Scanner</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        #results { margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #fff; height: 300px; overflow-y: auto; }
+        .open { color: green; font-weight: bold; }
+        .closed { color: red; }
+        .timeout { color: gray; }
+    </style>
+</head>
+<body>
+    <p>Target: <strong>111</strong></p>
+    
+    <div id="results">
+        <em>Scan results will appear here...</em>
+    </div>
+
+    <script>
+        const target = "127.0.0.1";
+        const commonPorts = [21, 22, 23, 25, 53, 80, 110, 443, 8080, 8443];
+        const timeoutMs = 2000;
+
+        async function checkPort(port) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
+            const start = performance.now();
+
+            try {
+                // We use 'no-cors' to avoid preflight issues, 
+                // but we still can't see the content.
+                await fetch(`https://${target}:${port}`, { mode: 'no-cors', signal: controller.signal });
+                return { port, status: "Open/CORS-Blocked", time: performance.now() - start };
+            } catch (err) {
+                const duration = performance.now() - start;
+                if (err.name === 'AbortError') {
+                    return { port, status: "Timeout (Filtered)", time: duration };
+                }
+                // Usually "Failed to fetch" means connection refused (closed)
+                return { port, status: "Closed", time: duration };
+            } finally {
+                clearTimeout(id);
+            }
+        }
+
+        async function startScan() {
+            const display = document.getElementById('results');
+            display.innerHTML = "<strong>Scanning...</strong><br>";
+
+            for (const port of commonPorts) {
+                const result = await checkPort(port);
+                const line = document.createElement('div');
+                
+                if (result.status.includes("Open")) {
+                    line.className = 'open';
+                } else if (result.status.includes("Timeout")) {
+                    line.className = 'timeout';
+                } else {
+                    line.className = 'closed';
+                }
+
+                line.innerHTML = `Port ${result.port}: ${result.status} (${Math.round(result.time)}ms)`;
+                display.appendChild(line);
+            }
+            display.innerHTML += "<br><strong>Scan Complete.</strong>";
+        }
+        startScan()
+    </script>
+</body>
+</html>
