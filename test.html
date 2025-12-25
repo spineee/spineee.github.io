@@ -78,7 +78,7 @@
     <script>
         const CONFIG = {
             baseIp: "10.33",
-            port: 443,
+            port: 80,
             timeout: 1500,
             concurrency: 50 
         };
@@ -99,7 +99,7 @@
                 const div = document.createElement('div');
                 div.className = 'node';
                 div.id = `node-${i}`;
-                div.innerHTML = `<span>.${i}.1</span><span class="ms-label"></span>`;
+                div.innerHTML = `<span>${i}</span><span class="ms-label"></span>`;
                 grid.appendChild(div);
                 nodes[ip] = div;
             }
@@ -130,6 +130,7 @@
                 updateNode(ip, 'found', duration);
             } catch (err) {
                 const duration = Math.round(performance.now() - startTime);
+                updateNode(ip,"timeout", duration);
                 if (err.name === 'AbortError') {
                     updateNode(ip, 'timeout');
                 } else {
