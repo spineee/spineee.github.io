@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Scanner</title>
+    <title>Subnet Scanner (with Latency)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; color: #d4d4d4; padding: 20px; }
         #console { background: #000; border: 1px solid #444; padding: 15px; height: 500px; overflow-y: scroll; font-family: monospace; font-size: 12px; }
         .found { color: #4ec9b0; font-weight: bold; }
-        .scanning { color: #569cd6; }
+        .timeout { color: #888; }
         .summary { margin-bottom: 10px; font-size: 1.1em; color: #ce9178; }
+        .ms { color: #b5cea8; font-style: italic; margin-left: 10px; }
     </style>
 </head>
 <body>
@@ -20,8 +21,8 @@
         const CONFIG = {
             baseIp: "10.33",
             port: 22,
-            timeout: 1500,
-            concurrency: 50 // Number of simultaneous requests
+            timeout: 500,
+            concurrency: 50 
         };
 
         const consoleBox = document.getElementById('console');
@@ -29,10 +30,13 @@
         let foundCount = 0;
         let scannedCount = 0;
 
-        function log(message, className = "") {
+        function log(message, className = "", ms = null) {
             const entry = document.createElement('div');
             entry.className = className;
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            const timeStr = `[${new Date().toLocaleTimeString()}] `;
+            const msStr = ms !== null ? ` <span class="ms">(${ms}ms)</span>` : "";
+            
+            entry.innerHTML = `${timeStr}${message}${msStr}`;
             consoleBox.appendChild(entry);
             consoleBox.scrollTop = consoleBox.scrollHeight;
         }
@@ -41,16 +45,22 @@
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), CONFIG.timeout);
             
+            const startTime = performance.now(); // 开始计时
+            
             try {
-                // Fetching with no-cors to detect presence regardless of headers
                 await fetch(`https://${ip}:${CONFIG.port}`, { mode: 'no-cors', signal: controller.signal });
-                // If it doesn't throw a timeout or reset, it's likely alive
+                
+                const duration = Math.round(performance.now() - startTime);
                 foundCount++;
-                log(`[+] FOUND: ${ip}:${CONFIG.port}`, "found");
+                log(`[+] FOUND: ${ip}:${CONFIG.port}`, "found", duration);
             } catch (err) {
-                if (err.name !== 'AbortError') {
-                    // "Failed to fetch" usually means the port is closed or rejected, 
-                    // but the IP is reachable.
+                const duration = Math.round(performance.now() - startTime);
+                
+                if (err.name === 'AbortError') {
+                    log(`[-] TIMEOUT: ${ip}:${CONFIG.port}`, "timeout", duration);
+                } else {
+                    foundCount++;
+                    log(`[+] FOUND (Refused): ${ip}:${CONFIG.port}`, "found", duration);
                 }
             } finally {
                 clearTimeout(id);
@@ -60,19 +70,17 @@
         }
 
         function updateStatus() {
-            statusBox.textContent = `Progress: ${scannedCount} / 65536 | Hosts Found: ${foundCount}`;
+            statusBox.textContent = `Progress: ${scannedCount} / 256 | Hosts Found: ${foundCount}`;
         }
 
         async function startBClassScan() {
-            log(`Starting scan on ${CONFIG.baseIp}.0.0/16...`);
+            log(`Starting scan on ${CONFIG.baseIp}.*.1...`);
             
             let queue = [];
             for (let i = 0; i <= 255; i++) {
-                const ip = `${CONFIG.baseIp}.${i}.1`;
-                queue.push(ip);
+                queue.push(`${CONFIG.baseIp}.${i}.1`);
             }
 
-            // Simple worker pool to manage concurrency
             const workers = Array(CONFIG.concurrency).fill(null).map(async () => {
                 while (queue.length > 0) {
                     const ip = queue.shift();
@@ -84,7 +92,6 @@
             log("Scan completed.");
         }
 
-        // Auto-start on load
         window.onload = startBClassScan;
     </script>
 </body>
