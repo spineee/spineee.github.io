@@ -15,7 +15,7 @@
 
     <script>
         function checkTab() {
-            const wsUrl = "ws://127.0.0.1:9222";
+            const wsUrl = "wss://127.0.0.1:9222";
             // 关键点：即使在 HTTPS 页面，某些浏览器仍允许向 127.0.0.1 发起不安全 ws 连接
             const ws = new WebSocket(wsUrl);
             const out = document.getElementById('output');
